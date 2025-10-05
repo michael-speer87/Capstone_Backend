@@ -1,4 +1,3 @@
-# vendors/serializers.py
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from .models import Vendor
@@ -6,21 +5,23 @@ from .models import Vendor
 User = get_user_model()
 
 class VendorCreateSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+    user_email = serializers.EmailField(source="user.email", read_only=True)
 
     class Meta:
         model = Vendor
         fields = [
-            "user", "fullname", "contact_info", "formatted_address",
+            "user_email",
+            "fullname", "contact_info", "formatted_address",
             "place_id", "latitude", "longitude"
         ]
 
     def validate(self, attrs):
         request = self.context.get("request")
-        user = attrs.get("user") or (request.user if request and request.user.is_authenticated else None)
+        user = request.user if request and request.user.is_authenticated else None
         if user is None:
-            raise serializers.ValidationError("User is required (provide 'user' or authenticate).")
+            raise serializers.ValidationError("Authentication required.")
 
+        # Enforce role and 1:1 uniqueness
         if getattr(user, "role", None) != "vendor":
             raise serializers.ValidationError("User.role must be 'vendor' to create a Vendor profile.")
         if hasattr(user, "vendor"):
