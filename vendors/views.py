@@ -5,6 +5,7 @@ from .serializers import VendorCreateSerializer
 from .models import Vendor
 
 class VendorCreateView(generics.CreateAPIView):
-    permission_classes = [permissions.AllowAny]  # switch to IsAuthenticated when you add auth tokens
+    permission_classes = [permissions.IsAuthenticated]  
     serializer_class = VendorCreateSerializer
     queryset = Vendor.objects.all()
+
