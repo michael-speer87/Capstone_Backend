@@ -5,6 +5,7 @@ from .serializers import CustomerCreateSerializer
 from .models import Customer
 
 class CustomerCreateView(generics.CreateAPIView):
-    permission_classes = [permissions.AllowAny]  # switch to IsAuthenticated when you add auth tokens
+    permission_classes = [permissions.IsAuthenticated] 
     serializer_class = CustomerCreateSerializer
     queryset = Customer.objects.all()
+
