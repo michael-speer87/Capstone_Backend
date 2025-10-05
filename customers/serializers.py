@@ -6,23 +6,24 @@ from .models import Customer
 User = get_user_model()
 
 class CustomerCreateSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+    user_email = serializers.EmailField(source="user.email", read_only=True)
 
     class Meta:
         model = Customer
         fields = [
-            "user", "fullname", "contact_info", "formatted_address",
+            # 'user' is not writable; we omit it from writable fields entirely
+            "user_email",
+            "fullname", "contact_info", "formatted_address",
             "place_id", "latitude", "longitude"
         ]
 
     def validate(self, attrs):
-        # Determine user: prefer explicit 'user', fall back to request.user
         request = self.context.get("request")
-        user = attrs.get("user") or (request.user if request and request.user.is_authenticated else None)
+        user = request.user if request and request.user.is_authenticated else None
         if user is None:
-            raise serializers.ValidationError("User is required (provide 'user' or authenticate).")
+            # If someone hits this without a valid JWT
+            raise serializers.ValidationError("Authentication required.")
 
-        # Enforce role and 1:1 constraint
         if getattr(user, "role", None) != "customer":
             raise serializers.ValidationError("User.role must be 'customer' to create a Customer profile.")
         if hasattr(user, "customer"):
