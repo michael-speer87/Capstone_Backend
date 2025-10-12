@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .views_auth import CookieTokenObtainPairView, CookieTokenRefreshView, LogoutView
+from users.views import PasswordResetRequestView, PasswordResetConfirmView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +27,9 @@ urlpatterns = [
     path("api/vendors/", include("vendors.urls")),
     path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/auth/login/", CookieTokenObtainPairView.as_view(), name="cookie_login"),
+    path("api/auth/refresh-cookie/", CookieTokenRefreshView.as_view(), name="cookie_refresh"),
+    path("api/auth/logout/", LogoutView.as_view(), name="logout"),
+    path("api/auth/register/password-reset/", PasswordResetRequestView.as_view(), name="password_reset"),
+    path("api/auth/register/password-reset-confirm/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
 ]
