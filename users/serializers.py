@@ -31,3 +31,54 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate(self, attrs):
+        self.user = User.objects.filter(email__iexact=attrs["email"]).first()
+        return attrs
+
+    def save(self, **kwargs):
+        if not self.user:
+            return  
+
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = token_generator.make_token(self.user)
+
+        # Build a URL frontend can handle:
+        # e.g., https://frontend/reset?uid=<uid>&token=<token>
+        reset_url = f'{kwargs.get("frontend_reset_url", "http://localhost:3000/reset")}?uid={uid}&token={token}'
+
+        subject = "Password reset"
+        message = f"Click the link to reset your password:\n{reset_url}\n\nIf you didn't request this, ignore this email."
+        send_mail(subject, message, getattr(settings, "DEFAULT_FROM_EMAIL", None), [self.user.email])
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+    new_password2 = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["new_password2"]:
+            raise serializers.ValidationError({"new_password": "Password fields didn't match."})
+
+        try:
+            uid = force_str(urlsafe_base64_decode(attrs["uid"]))
+            self.user = User.objects.get(pk=uid)
+        except Exception:
+            raise serializers.ValidationError("Invalid reset link.")
+
+        if not token_generator.check_token(self.user, attrs["token"]):
+            raise serializers.ValidationError("Invalid or expired token.")
+
+        return attrs
+
+    def save(self, **kwargs):
+        password = self.validated_data["new_password"]
+        self.user.set_password(password)
+        self.user.save()
+        return self.user
