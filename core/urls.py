@@ -22,7 +22,7 @@ from users.views import PasswordResetRequestView, PasswordResetConfirmView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("api/auth/register/", include("users.urls")),
+    path("api/auth/", include("users.urls")),
     path("api/customers/", include("customers.urls")),
     path("api/vendors/", include("vendors.urls")),
     path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
@@ -30,6 +30,6 @@ urlpatterns = [
     path("api/auth/login/", CookieTokenObtainPairView.as_view(), name="cookie_login"),
     path("api/auth/refresh-cookie/", CookieTokenRefreshView.as_view(), name="cookie_refresh"),
     path("api/auth/logout/", LogoutView.as_view(), name="logout"),
-    path("api/auth/register/password-reset/", PasswordResetRequestView.as_view(), name="password_reset"),
-    path("api/auth/register/password-reset-confirm/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
+    path("api/auth/password-reset/", PasswordResetRequestView.as_view(), name="password_reset"),
+    path("api/auth/password-reset-confirm/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
 ]
