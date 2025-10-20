@@ -11,7 +11,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("email", "password", "password2", "role")  # role exists on your model
+        fields = ("email", "password", "confirmPassword", "role")  # role exists on your model
         extra_kwargs = {"email": {"required": True}}
 
     def validate_email(self, value):
@@ -20,12 +20,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        if attrs["password"] != attrs["password2"]:
+        if attrs["password"] != attrs["confirmPassword"]:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
         return attrs
 
     def create(self, validated_data):
-        validated_data.pop("password2")
+        validated_data.pop("confirmPassword")
         password = validated_data.pop("password")
         user = User(**validated_data)
         user.set_password(password)
@@ -82,3 +82,4 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         self.user.set_password(password)
         self.user.save()
         return self.user
+
