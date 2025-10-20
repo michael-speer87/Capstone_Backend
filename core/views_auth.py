@@ -6,11 +6,13 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .auth_serializers import MyTokenObtainPairSerializer
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+
 
 REFRESH_COOKIE_NAME = "refresh_token"
 REFRESH_COOKIE_PATH = "/api/auth/refresh-cookie/"
 REFRESH_COOKIE_SAMESITE = "Lax"   
-REFRESH_COOKIE_SECURE = True     
+REFRESH_COOKIE_SECURE = True  
 REFRESH_COOKIE_HTTPONLY = True
 
 def set_refresh_cookie(resp, refresh, lifetime_seconds=60*60*24*7):
@@ -39,9 +41,28 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
 class CookieTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
-        request.data._mutable = True if hasattr(request.data, "_mutable") else False
-        request.data["refresh"] = request.COOKIES.get(REFRESH_COOKIE_NAME)
-        return super().post(request, *args, **kwargs)
+        # Read refresh straight from the cookie
+        refresh = request.COOKIES.get(REFRESH_COOKIE_NAME)
+        if not refresh:
+            return Response({"detail": "Refresh cookie missing."},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        # Validate with SimpleJWT's serializer
+        serializer = self.get_serializer(data={"refresh": refresh})
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+
+        data = serializer.validated_data
+
+        # Build response with new access (and set a new refresh cookie if rotation returns one)
+        resp = Response({"access": data["access"]}, status=status.HTTP_200_OK)
+        new_refresh = data.get("refresh")
+        if new_refresh:
+            set_refresh_cookie(resp, new_refresh)
+        return resp
+
 
 class LogoutView(APIView):
     permission_classes = [permissions.AllowAny]
