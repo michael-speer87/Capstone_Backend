@@ -7,7 +7,7 @@ User = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True)
+    confirmPassword = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
@@ -82,4 +82,5 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         self.user.set_password(password)
         self.user.save()
         return self.user
+
 
