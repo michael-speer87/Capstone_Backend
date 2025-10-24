@@ -17,14 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views_auth import CookieTokenObtainPairView, CookieTokenRefreshView, LogoutView
+from .views_auth import CookieTokenObtainPairView, CookieTokenRefreshView, LogoutView, RoleProfileView
 from users.views import PasswordResetRequestView, PasswordResetConfirmView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/auth/", include("users.urls")),
-    path("api/customers/", include("customers.urls")),
-    path("api/vendors/", include("vendors.urls")),
+    path("api/profile/", RoleProfileView.as_view(), name="profile-create"),
     path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/auth/login/", CookieTokenObtainPairView.as_view(), name="cookie_login"),
