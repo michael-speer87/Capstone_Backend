@@ -3,10 +3,14 @@ from django.conf import settings
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import generics, status, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .auth_serializers import MyTokenObtainPairSerializer
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from customers.models import Customer
+from vendors.models import Vendor
+from customers.serializers import CustomerCreateSerializer
+from vendors.serializers import VendorCreateSerializer
 
 
 REFRESH_COOKIE_NAME = "refresh_token"
@@ -71,3 +75,47 @@ class LogoutView(APIView):
         resp = Response(status=status.HTTP_204_NO_CONTENT)
         resp.delete_cookie(REFRESH_COOKIE_NAME, path=REFRESH_COOKIE_PATH)
         return resp
+
+class RoleProfileView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    serializer_map = {
+        "customer": (Customer, CustomerCreateSerializer),
+        "vendor": (Vendor, VendorCreateSerializer),
+    }
+
+    def _get_role_parts(self, request):
+        role = getattr(request.user, "role", None)
+        if role not in self.serializer_map:
+            return None, None, Response(
+                {"detail": "Invalid or missing user role (expected 'customer' or 'vendor')."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        Model, Serializer = self.serializer_map[role]
+        return Model, Serializer, None
+
+    def get(self, request, *args, **kwargs):
+        Model, Serializer, error = self._get_role_parts(request)
+        if error:
+            return error
+
+        obj = Model.objects.filter(user=request.user).first()
+        if not obj:
+            return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        data = Serializer(obj, context={"request": request}).data
+        return Response(data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        Model, Serializer, error = self._get_role_parts(request)
+        if error:
+            return error
+
+        # Optional guard to prevent duplicates; many projects enforce this in the serializer instead.
+        if Model.objects.filter(user=request.user).exists():
+            return Response({"detail": "Profile already exists."}, status=status.HTTP_400_BAD_REQUEST)
+
+        ser = Serializer(data=request.data, context={"request": request})
+        ser.is_valid(raise_exception=True)
+        instance = ser.save()  # serializers should set user=request.user internally
+        return Response(ser.data, status=status.HTTP_201_CREATED)
