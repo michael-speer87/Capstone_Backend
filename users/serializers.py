@@ -1,9 +1,15 @@
 # users/serializers.py
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.core.mail import send_mail
 from rest_framework import serializers
+from django.conf import settings
 
 User = get_user_model()
+token_generator = PasswordResetTokenGenerator()
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -11,7 +17,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("email", "password", "confirmPassword", "role")  # role exists on your model
+        fields = ("email", "password", "confirmPassword", "role")  
         extra_kwargs = {"email": {"required": True}}
 
     def validate_email(self, value):
@@ -32,7 +38,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
@@ -49,7 +54,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 
         # Build a URL frontend can handle:
         # e.g., https://frontend/reset?uid=<uid>&token=<token>
-        reset_url = f'{kwargs.get("frontend_reset_url", "http://localhost:3000/reset")}?uid={uid}&token={token}'
+        reset_url = f'{kwargs.get("frontend_reset_url", "http://localhost:5173/reset")}?uid={uid}&token={token}'
 
         subject = "Password reset"
         message = f"Click the link to reset your password:\n{reset_url}\n\nIf you didn't request this, ignore this email."
@@ -82,5 +87,3 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         self.user.set_password(password)
         self.user.save()
         return self.user
-
-
