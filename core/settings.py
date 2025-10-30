@@ -114,7 +114,7 @@ DATABASES = {
 AUTH_USER_MODEL = "users.User"
 
 EMAIL_HOST = "sandbox.smtp.mailtrap.io"
-EMAIL_PORT = 587              
+EMAIL_PORT = 2525          
 EMAIL_HOST_USER = "7f15ccda050f20"
 EMAIL_HOST_PASSWORD = "****953b"
 EMAIL_USE_TLS = True         
@@ -171,3 +171,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
