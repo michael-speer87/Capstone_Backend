@@ -106,16 +106,21 @@ class RoleProfileView(generics.GenericAPIView):
         data = Serializer(obj, context={"request": request}).data
         return Response(data, status=status.HTTP_200_OK)
 
-    def post(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         Model, Serializer, error = self._get_role_parts(request)
         if error:
             return error
 
-        # Optional guard to prevent duplicates; many projects enforce this in the serializer instead.
-        if Model.objects.filter(user=request.user).exists():
-            return Response({"detail": "Profile already exists."}, status=status.HTTP_400_BAD_REQUEST)
-
-        ser = Serializer(data=request.data, context={"request": request})
-        ser.is_valid(raise_exception=True)
-        instance = ser.save()  # serializers should set user=request.user internally
-        return Response(ser.data, status=status.HTTP_201_CREATED)
+        obj = Model.objects.filter(user=request.user).first()
+        if obj:
+            # Full replace: client should send all required fields
+            ser = Serializer(obj, data=request.data, context={"request": request}, partial=False)
+            ser.is_valid(raise_exception=True)
+            ser.save()
+            return Response(ser.data, status=status.HTTP_200_OK)
+        else:
+            # Create if it doesn't exist yet
+            ser = Serializer(data=request.data, context={"request": request})
+            ser.is_valid(raise_exception=True)
+            ser.save()  # serializer should set user=request.user internally
+            return Response(ser.data, status=status.HTTP_201_CREATED)
