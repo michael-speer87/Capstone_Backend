@@ -11,23 +11,38 @@ class CustomerCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = [
-            # 'user' is not writable; we omit it from writable fields entirely
             "user_email",
             "fullname", "contact_info", "formatted_address",
-            "place_id", "latitude", "longitude"
+            "place_id", "latitude", "longitude",
         ]
+        read_only_fields = ("user_email",)
 
     def validate(self, attrs):
         request = self.context.get("request")
         user = request.user if request and request.user.is_authenticated else None
         if user is None:
-            # If someone hits this without a valid JWT
             raise serializers.ValidationError("Authentication required.")
 
-        if getattr(user, "role", None) != "customer":
-            raise serializers.ValidationError("User.role must be 'customer' to create a Customer profile.")
-        if hasattr(user, "customer"):
-            raise serializers.ValidationError("This user already has a Customer profile.")
+        # On CREATE (no instance): enforce role and 1:1
+        if self.instance is None:
+            if getattr(user, "role", None) != "customer":
+                raise serializers.ValidationError("User.role must be 'customer' to create a Customer profile.")
+            if hasattr(user, "customer"):
+                raise serializers.ValidationError("This user already has a Customer profile.")
+            attrs["user"] = user  # force ownership on create
+        else:
+            # On UPDATE: lock ownership and role
+            if self.instance.user != user:
+                raise serializers.ValidationError("You can only modify your own profile.")
+            if getattr(user, "role", None) != "customer":
+                raise serializers.ValidationError("User.role must be 'customer' to update a Customer profile.")
 
-        attrs["user"] = user
         return attrs
+
+    def update(self, instance, validated_data):
+        # never allow changing instance.user from client data
+        for field in ["fullname", "contact_info", "formatted_address", "place_id", "latitude", "longitude"]:
+            if field in validated_data:
+                setattr(instance, field, validated_data[field])
+        instance.save()
+        return instance
