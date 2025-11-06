@@ -30,6 +30,9 @@ def set_refresh_cookie(resp, refresh, lifetime_seconds=60*60*24*7):
         expires=expires,
     )
 
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+
 class CookieTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
@@ -124,3 +127,4 @@ class RoleProfileView(generics.GenericAPIView):
             ser.is_valid(raise_exception=True)
             ser.save()  # serializer should set user=request.user internally
             return Response(ser.data, status=status.HTTP_201_CREATED)
+
