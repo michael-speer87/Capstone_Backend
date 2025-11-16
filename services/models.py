@@ -5,10 +5,9 @@ from django.db import models
 class Service(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=150)
-    category = models.CharField(max_length=64)  # e.g., wash/detail/maintenance/repair
     description = models.TextField(blank=True)
-    base_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    duration_min = models.IntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    duration = models.IntegerField(null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -16,7 +15,7 @@ class Service(models.Model):
     class Meta:
         db_table = "services"
         indexes = [
-            models.Index(fields=["category"], name="ix_services_category"),
+            models.Index(fields=["name"], name="ix_services_name"),
         ]
 
     def __str__(self):
@@ -28,6 +27,7 @@ class VendorService(models.Model):
     vendor = models.ForeignKey("vendors.Vendor", on_delete=models.CASCADE, related_name="offerings")
     service = models.ForeignKey("services.Service", on_delete=models.PROTECT, related_name="vendor_links")
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    duration = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
