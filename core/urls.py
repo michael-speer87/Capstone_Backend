@@ -20,6 +20,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views_auth import CookieTokenObtainPairView, CookieTokenRefreshView, LogoutView, RoleProfileView, MyTokenObtainPairView
 from users.views import PasswordResetRequestView, PasswordResetConfirmView
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/auth/", include("users.urls")),
@@ -31,5 +32,5 @@ urlpatterns = [
     path("api/auth/logout/", LogoutView.as_view(), name="logout"),
     path("api/auth/password-reset/", PasswordResetRequestView.as_view(), name="password_reset"),
     path("api/auth/password-reset-confirm/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
+    path("api/services/", include("services.urls")),
 ]
-

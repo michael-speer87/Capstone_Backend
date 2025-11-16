@@ -71,12 +71,6 @@ CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
 ROOT_URLCONF = 'core.urls'
 
 
-SIMPLE_JWT = {
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True, 
-}
-
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -114,7 +108,7 @@ DATABASES = {
 AUTH_USER_MODEL = "users.User"
 
 EMAIL_HOST = "sandbox.smtp.mailtrap.io"
-EMAIL_PORT = 2525          
+EMAIL_PORT = 2525             
 EMAIL_HOST_USER = "7f15ccda050f20"
 EMAIL_HOST_PASSWORD = "d1b70c26bd953b"
 EMAIL_USE_TLS = True         
@@ -171,5 +165,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-

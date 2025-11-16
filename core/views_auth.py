@@ -127,4 +127,3 @@ class RoleProfileView(generics.GenericAPIView):
             ser.is_valid(raise_exception=True)
             ser.save()  # serializer should set user=request.user internally
             return Response(ser.data, status=status.HTTP_201_CREATED)
-
