@@ -95,3 +95,24 @@ class VendorServiceView(generics.GenericAPIView):
 
         out = VendorServiceListSerializer(vendor_service)
         return Response(out.data, status=status.HTTP_200_OK)
+    
+    def delete(self, request, *args, **kwargs):
+        vendor = get_vendor_for_request(request)
+
+        service_id = (
+            request.data.get("service_id")
+        )
+        if not service_id:
+            return Response(
+                {"detail": "service_id is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        vendor_service = get_object_or_404(
+            VendorService,
+            vendor=vendor,
+            service__id=service_id,
+        )
+
+        vendor_service.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
