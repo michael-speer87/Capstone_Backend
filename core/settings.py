@@ -100,7 +100,10 @@ DATABASES = {
         "PASSWORD": "86gwMbOnKqHkVjfM",
         "HOST": "gateway01.us-east-1.prod.aws.tidbcloud.com",
         "PORT": "4000",
-        "OPTIONS": {"charset": "utf8mb4"},
+        "OPTIONS": {
+            "charset": "utf8mb4",
+            "ssl": {"ca": "/etc/ssl/certs/ca-certificates.crt"}
+            },
     }
 }
 
