@@ -95,11 +95,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "test",
-        "USER": "3FbYgBz9sm53AkU.root",
-        "PASSWORD": "86gwMbOnKqHkVjfM",
-        "HOST": "gateway01.us-east-1.prod.aws.tidbcloud.com",
-        "PORT": "4000",
+        "NAME": "sql5809594",
+        "USER": "sql5809594",
+        "PASSWORD": "flm3aFPu1f",
+        "HOST": "sql5.freesqldatabase.com",
+        "PORT": "3306",
         "OPTIONS": {
             "charset": "utf8mb4",
             "ssl": {"ca": "/etc/ssl/certs/ca-certificates.crt"}
