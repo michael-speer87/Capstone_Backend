@@ -95,11 +95,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "car_service_connect2",
-        "USER": "root",
-        "PASSWORD": "TylerD23!",
-        "HOST": "127.0.0.1",
-        "PORT": "3306",
+        "NAME": "test",
+        "USER": "3FbYgBz9sm53AkU.root",
+        "PASSWORD": "86gwMbOnKqHkVjfM",
+        "HOST": "gateway01.us-east-1.prod.aws.tidbcloud.com",
+        "PORT": "4000",
         "OPTIONS": {"charset": "utf8mb4"},
     }
 }
