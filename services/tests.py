@@ -6,7 +6,7 @@ from django.test import TestCase
 $BASE = "http://127.0.0.1:8000"
 
 $loginBody = @{
-    email    = "example2@gmail.com"
+    email    = "vendor2@gmail.com"
     password = "Password123!"
 } | ConvertTo-Json
 
@@ -15,11 +15,11 @@ $ACCESS  = $tokenResponse.access
 $AuthHeaders = @{ "Authorization" = "Bearer $ACCESS" }
 
 # --- 1) Seed list ---
-$seed = Invoke-RestMethod -Method GET -Uri "$BASE/api/services/seed/"
+$seed = Invoke-RestMethod -Method GET -Uri "$BASE/api/services/list/"
 $seed | ConvertTo-Json -Depth 5
 
 # Manually pick a service id from $seed and set:
-$SERVICE_ID = "2412d2b9-ebc3-479d-8b84-852e3244a56c"
+$SERVICE_ID = "1f116871-5074-497e-821f-9ddc73698679"
 
 # --- 2) Register service ---
 $registerBody = @{

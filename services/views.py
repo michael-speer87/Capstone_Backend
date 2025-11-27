@@ -10,6 +10,8 @@ from .serializers import (
     VendorServiceListSerializer,
     VendorServiceCreateSerializer,
     VendorServiceUpdateSerializer,
+    PublicVendorServiceSerializer,
+    PublicVendorServiceSerializer,
 )
 
 
@@ -116,3 +118,41 @@ class VendorServiceView(generics.GenericAPIView):
 
         vendor_service.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+    
+class VendorPublicServiceListView(generics.ListAPIView):
+    """
+    Public list of services for a specific vendor.
+    No authentication required.
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PublicVendorServiceSerializer
+
+    def get_queryset(self):
+        vendor_id = self.kwargs.get("vendor_id")
+        return (
+            VendorService.objects
+            .filter(
+                vendor__id=vendor_id,
+                is_active=True,
+                service__is_active=True,
+            )
+            .select_related("service", "vendor")
+        )
+    
+class HomepageServiceListView(generics.ListAPIView):
+    """
+    Public list of all active vendor services for the homepage.
+    No authentication required.
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PublicVendorServiceSerializer
+
+    def get_queryset(self):
+        # Only show active vendor-service links and active base services
+        return (
+            VendorService.objects
+            .filter(is_active=True, service__is_active=True)
+            .select_related("service", "vendor")
+        )
