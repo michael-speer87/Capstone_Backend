@@ -43,3 +43,22 @@ class VendorCreateSerializer(serializers.ModelSerializer):
                 setattr(instance, field, validated_data[field])
         instance.save()
         return instance
+
+
+class VendorPublicSerializer(serializers.ModelSerializer):
+    """
+    Read-only vendor profile used by public vendor profile endpoint.
+    """
+
+    class Meta:
+        model = Vendor
+        fields = [
+            "id",               # UUID
+            "fullname",         # string
+            "contact_info",     # string
+            "formatted_address",# string
+            "place_id",         # string
+            "latitude",         # decimal -> string in JSON
+            "longitude",        # decimal -> string in JSON
+        ]
+        read_only_fields = fields
