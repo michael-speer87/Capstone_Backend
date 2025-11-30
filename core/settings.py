@@ -95,14 +95,13 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "sql5809594",
-        "USER": "sql5809594",
-        "PASSWORD": "flm3aFPu1f",
-        "HOST": "sql5.freesqldatabase.com",
+        "NAME": "mrspeer$default",
+        "USER": "mrspeer",
+        "PASSWORD": "H66K..Q!dCTdVnZ",
+        "HOST": "mrspeer.mysql.pythonanywhere-services.com",
         "PORT": "3306",
         "OPTIONS": {
             "charset": "utf8mb4",
-            "ssl": {"ca": "/etc/ssl/certs/ca-certificates.crt"}
             },
     }
 }
