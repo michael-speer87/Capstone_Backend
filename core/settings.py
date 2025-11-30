@@ -100,9 +100,6 @@ DATABASES = {
         "PASSWORD": "flm3aFPu1f",
         "HOST": "sql5.freesqldatabase.com",
         "PORT": "3306",
-        "OPTIONS": {
-            "ssl": {"ca": "/etc/ssl/certs/ca-certificates.crt"}
-            },
     }
 }
 
