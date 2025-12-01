@@ -60,13 +60,13 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  
+    "https://transcendent-brigadeiros-13d416.netlify.app",  
 ]
 CORS_ALLOW_CREDENTIALS = True 
 CORS_ALLOW_HEADERS = ["authorization", "content-type"]
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
+CSRF_TRUSTED_ORIGINS = ["https://transcendent-brigadeiros-13d416.netlify.app"]
 
 ROOT_URLCONF = 'core.urls'
 
