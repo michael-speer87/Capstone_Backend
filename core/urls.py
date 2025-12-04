@@ -34,4 +34,5 @@ urlpatterns = [
     path("api/auth/password-reset-confirm/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
     path("api/services/", include("services.urls")),
     path("api/vendors/", include("vendors.urls")),
+    path("api/", include("bookings.urls")),
 ]
