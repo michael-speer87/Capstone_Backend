@@ -11,13 +11,11 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework import status, permissions, generics
 
-from .models import Booking
+from .models import Booking, CartItem, BookingGroup
 from services.models import VendorService
-from .models import CartItem
-from .serializers import CartItemSerializer
+from .serializers import CartItemSerializer, BookingCreateSerializer, BookingDetailSerializer, BookingItemSerializer
 from customers.models import Customer
 
-from .serializers import BookingCreateSerializer, BookingDetailSerializer
 
 class AvailabilitySlotsView(APIView):
     """
@@ -173,6 +171,15 @@ class IsCustomer(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
         return bool(user and user.is_authenticated and getattr(user, "role", None) == "customer")
+    
+class IsVendor(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and getattr(user, "role", None) == "vendor"
+        )
 
 
 class CartBaseView:
@@ -246,3 +253,128 @@ class BookingCreateView(APIView):
         booking_group = serializer.save()
         out = BookingDetailSerializer(booking_group)
         return Response(out.data, status=status.HTTP_201_CREATED)
+
+
+class BookingDetailView(generics.RetrieveAPIView):
+    """
+    GET /api/bookings/<id>/
+
+    Returns a single booking (BookingGroup) with its items.
+    Only the owning customer can view it.
+    """
+    permission_classes = [permissions.IsAuthenticated, IsCustomer]
+    serializer_class = BookingDetailSerializer
+    lookup_field = "id"
+
+    def get_queryset(self):
+        # Only allow the logged-in customer's bookings.
+        user = self.request.user
+        customer = user.customer  # assuming OneToOne: Customer(user=User)
+        return BookingGroup.objects.filter(customer=customer)
+    
+from rest_framework import status as drf_status
+    
+class VendorBookingItemStatusView(APIView):
+    """
+    PATCH /api/booking-items/<id>/vendor-status/
+
+    Vendor can:
+      - processing -> vendor_done
+      - processing -> cancelled
+    """
+    permission_classes = [permissions.IsAuthenticated, IsVendor]
+
+    def patch(self, request, id, *args, **kwargs):
+        user = request.user
+        vendor = user.vendor  # assuming Vendor(user=User)
+
+        try:
+            item = Booking.objects.get(id=id, vendor=vendor)
+        except Booking.DoesNotExist:
+            # Either item doesn't exist or doesn't belong to this vendor
+            raise PermissionDenied("Booking item not found for this vendor.")
+
+        new_status = request.data.get("status")
+        if new_status not in [Booking.Status.VENDOR_DONE, Booking.Status.CANCELLED]:
+            return Response(
+                {"status": ["Invalid status for vendor. Use 'vendor_done' or 'cancelled'."]},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Enforce transitions
+        if item.status != Booking.Status.PROCESSING:
+            return Response(
+                {"detail": f"Cannot change status from '{item.status}' via vendor endpoint."},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Update fields
+        item.status = new_status
+        now = timezone.now()
+        if new_status == Booking.Status.VENDOR_DONE:
+            item.vendor_marked_done_at = now
+        elif new_status == Booking.Status.CANCELLED:
+            # you can also clear timestamps if you want
+            item.vendor_marked_done_at = item.vendor_marked_done_at
+        item.save()
+
+        # Return updated item
+        data = BookingItemSerializer(item).data
+        return Response(data, status=drf_status.HTTP_200_OK)
+    
+class CustomerBookingItemStatusView(APIView):
+    """
+    PATCH /api/booking-items/<id>/customer-status/
+
+    Customer can:
+      - vendor_done -> customer_confirmed
+      - processing -> cancelled
+      - vendor_done -> cancelled  (optional: keep if you want to allow this)
+    """
+    permission_classes = [permissions.IsAuthenticated, IsCustomer]
+
+    def patch(self, request, id, *args, **kwargs):
+        user = request.user
+        customer = user.customer  # adjust if needed
+
+        try:
+            item = Booking.objects.get(id=id, customer=customer)
+        except Booking.DoesNotExist:
+            raise PermissionDenied("Booking item not found for this customer.")
+
+        new_status = request.data.get("status")
+        if new_status not in [
+            Booking.Status.CUSTOMER_CONFIRMED,
+            Booking.Status.CANCELLED,
+        ]:
+            return Response(
+                {"status": ["Invalid status for customer. Use 'customer_confirmed' or 'cancelled'."]},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Enforce transitions
+        if new_status == Booking.Status.CUSTOMER_CONFIRMED:
+            if item.status != Booking.Status.VENDOR_DONE:
+                return Response(
+                    {"detail": "Item must be 'vendor_done' before customer can confirm."},
+                    status=drf_status.HTTP_400_BAD_REQUEST,
+                )
+        elif new_status == Booking.Status.CANCELLED:
+            if item.status not in [Booking.Status.PROCESSING, Booking.Status.VENDOR_DONE]:
+                return Response(
+                    {"detail": f"Cannot cancel item with status '{item.status}'."},
+                    status=drf_status.HTTP_400_BAD_REQUEST,
+                )
+
+        # Update fields
+        item.status = new_status
+        now = timezone.now()
+        if new_status == Booking.Status.CUSTOMER_CONFIRMED:
+            item.customer_confirmed_at = now
+        elif new_status == Booking.Status.CANCELLED:
+            # keep vendor_marked_done_at as-is
+            item.customer_confirmed_at = item.customer_confirmed_at
+        item.save()
+
+        data = BookingItemSerializer(item).data
+        return Response(data, status=drf_status.HTTP_200_OK)

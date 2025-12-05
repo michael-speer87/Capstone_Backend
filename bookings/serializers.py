@@ -275,3 +275,8 @@ class BookingDetailSerializer(serializers.ModelSerializer):
             "email": obj.customer_email,
             "address": obj.customer_address,
         }
+
+class BookingItemStatusUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
+        fields = ["status"]

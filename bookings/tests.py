@@ -218,4 +218,42 @@ $booking = Invoke-RestMethod `
 
 $booking
 
+$bookingDetail = Invoke-RestMethod `
+    -Method GET `
+    -Uri "$BASE/api/bookings/$bookingId/" `
+    -Headers $headers
+
+$bookingDetail | Format-List *
+$bookingDetail.items | Format-Table id, service_name, price, duration, preferred_date, preferred_time, status
+
+
+$loginBodyVendor = @{
+    email    = "example2@gmail.com"
+    password = "Password123!"
+} | ConvertTo-Json
+
+$loginVendor = Invoke-RestMethod `
+    -Method POST `
+    -Uri "$BASE/api/auth/token/" `
+    -ContentType "application/json" `
+    -Body $loginBodyVendor
+
+$VendorACCESS = $loginVendor.access
+$vendorHeaders = @{ Authorization = "Bearer $VendorACCESS" }
+
+$customerStatusBody = @{
+    status = "customer_confirmed"
+} | ConvertTo-Json
+
+$updatedByCustomer = Invoke-RestMethod `
+    -Method PATCH `
+    -Uri "$BASE/api/booking-items/$bookingItemId/customer-status/" `
+    -Headers $headers `
+    -ContentType "application/json" `
+    -Body $customerStatusBody
+
+$updatedByCustomer | Format-List *
+
+
+
 """
