@@ -14,6 +14,7 @@ from .serializers import (
     PublicVendorServiceSerializer,
 )
 from math import ceil
+import uuid
 
 
 def get_vendor_for_request(request):
@@ -145,18 +146,44 @@ class VendorPublicServiceListView(generics.ListAPIView):
 class HomepageServiceListView(generics.ListAPIView):
     """
     Public list of all active vendor services for the homepage.
-    Supports pagination via ?page={page}&limit={limit}.
+    Supports:
+      - pagination via ?page={page}&limit={limit}
+      - optional filtering via ?serviceIds=id1,id2,id3
     """
     permission_classes = [permissions.AllowAny]
     serializer_class = PublicVendorServiceSerializer
 
     def get_queryset(self):
-        # Only show active vendor-service links and active base services
-        return (
+        # Base queryset: only active vendor-service links and active services
+        qs = (
             VendorService.objects
             .filter(is_active=True, service__is_active=True)
             .select_related("service", "vendor")
         )
+
+        # Optional filter by serviceIds (comma-separated UUIDs)
+        service_ids_param = self.request.query_params.get("serviceIds")
+
+        # Treat null/undefined/missing/empty as no filter
+        if service_ids_param and service_ids_param not in ["null", "undefined"]:
+            # Split comma-separated string into a list
+            raw_ids = [s.strip() for s in service_ids_param.split(",") if s.strip()]
+
+            valid_uuids = []
+            for value in raw_ids:
+                try:
+                    valid_uuids.append(uuid.UUID(value))
+                except ValueError:
+                    # Ignore invalid UUIDs instead of crashing
+                    continue
+
+            if valid_uuids:
+                qs = qs.filter(service__id__in=valid_uuids)
+            else:
+                # If nothing valid, return empty queryset
+                qs = qs.none()
+
+        return qs
 
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -207,3 +234,4 @@ class HomepageServiceListView(generics.ListAPIView):
         }
 
         return Response(response_data)
+
