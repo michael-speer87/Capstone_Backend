@@ -8,10 +8,14 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework.exceptions import PermissionDenied
+from rest_framework import status, permissions, generics
 
 from .models import Booking
 from services.models import VendorService
+from .models import CartItem
+from .serializers import CartItemSerializer
+from customers.models import Customer
 
 
 class AvailabilitySlotsView(APIView):
@@ -158,3 +162,61 @@ class AvailabilitySlotsView(APIView):
             "slots": slots,
         }
         return Response(data, status=status.HTTP_200_OK)
+
+
+class IsCustomer(permissions.BasePermission):
+    """
+    Allows access only to users with role='customer'.
+    """
+
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(user and user.is_authenticated and getattr(user, "role", None) == "customer")
+
+
+class CartBaseView:
+    """
+    Common helper to fetch the current Customer.
+    """
+
+    def _get_customer(self):
+        user = self.request.user
+        try:
+            return Customer.objects.get(user=user)
+        except Customer.DoesNotExist:
+            raise PermissionDenied("Customer profile does not exist.")
+
+
+class CartListCreateView(CartBaseView, generics.ListCreateAPIView):
+    """
+    GET  /api/cart/    -> list all items in the logged-in customer's cart
+    POST /api/cart/    -> add a new item to the cart
+    """
+
+    permission_classes = [permissions.IsAuthenticated, IsCustomer]
+    serializer_class = CartItemSerializer
+
+    def get_queryset(self):
+        customer = self._get_customer()
+        return CartItem.objects.filter(customer=customer).order_by("created_at")
+
+    def perform_create(self, serializer):
+        customer = self._get_customer()
+        serializer.save(customer=customer)
+
+
+class CartItemDetailView(CartBaseView, generics.RetrieveUpdateDestroyAPIView):
+    """
+    PATCH  /api/cart/<id>/   -> update preferredDate / preferredTime
+    DELETE /api/cart/<id>/   -> delete an item
+    """
+
+    permission_classes = [permissions.IsAuthenticated, IsCustomer]
+    serializer_class = CartItemSerializer
+    lookup_field = "id"
+
+    def get_queryset(self):
+        customer = self._get_customer()
+        # Only allow access to this customer's own cart items
+        return CartItem.objects.filter(customer=customer)
+

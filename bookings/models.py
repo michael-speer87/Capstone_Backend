@@ -44,3 +44,39 @@ class Booking(models.Model):
     def __str__(self):
         return f"{self.id} ({self.status})"
 
+
+class CartItem(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    customer = models.ForeignKey(
+        "customers.Customer",
+        on_delete=models.CASCADE,
+        related_name="cart_items",
+    )
+    vendor = models.ForeignKey(
+        "vendors.Vendor",
+        on_delete=models.PROTECT,
+        related_name="cart_items",
+    )
+    service = models.ForeignKey(
+        "services.Service",
+        on_delete=models.PROTECT,
+        related_name="cart_items",
+    )
+
+    preferred_date = models.DateField()
+    preferred_time = models.TimeField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "cart"
+        indexes = [
+            models.Index(fields=["customer"], name="ix_cart_customer"),
+            models.Index(fields=["vendor"], name="ix_cart_vendor"),
+            models.Index(fields=["service"], name="ix_cart_service"),
+        ]
+
+    def __str__(self):
+        return f"CartItem {self.id} for customer {self.customer_id}"
