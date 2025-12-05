@@ -17,6 +17,7 @@ from .models import CartItem
 from .serializers import CartItemSerializer
 from customers.models import Customer
 
+from .serializers import BookingCreateSerializer, BookingDetailSerializer
 
 class AvailabilitySlotsView(APIView):
     """
@@ -220,3 +221,28 @@ class CartItemDetailView(CartBaseView, generics.RetrieveUpdateDestroyAPIView):
         # Only allow access to this customer's own cart items
         return CartItem.objects.filter(customer=customer)
 
+
+class IsCustomer(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and getattr(user, "role", None) == "customer"
+        )
+
+
+class BookingCreateView(APIView):
+    """
+    POST /api/bookings/
+    Creates a BookingGroup + Booking items and returns full booking detail.
+    """
+
+    permission_classes = [permissions.IsAuthenticated, IsCustomer]
+
+    def post(self, request, *args, **kwargs):
+        serializer = BookingCreateSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        booking_group = serializer.save()
+        out = BookingDetailSerializer(booking_group)
+        return Response(out.data, status=status.HTTP_201_CREATED)
