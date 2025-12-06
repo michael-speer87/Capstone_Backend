@@ -143,7 +143,7 @@ $cart | Format-Table id, preferredDate, preferredTime
 BOOKING TESTS
 $BASE = "http://127.0.0.1:8000"
 $loginBody = @{
-    email    = "example3@gmail.com"    
+    email    = "example2@gmail.com"    
     password = "Password123!"    
 } | ConvertTo-Json
 
@@ -253,6 +253,13 @@ $updatedByCustomer = Invoke-RestMethod `
     -Body $customerStatusBody
 
 $updatedByCustomer | Format-List *
+
+$vendorItems = Invoke-RestMethod `
+    -Method GET `
+    -Uri "$BASE/api/vendor/booking-items/" `
+    -Headers $headers
+
+$vendorItems
 
 
 

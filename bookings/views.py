@@ -15,6 +15,7 @@ from .models import Booking, CartItem, BookingGroup
 from services.models import VendorService
 from .serializers import CartItemSerializer, BookingCreateSerializer, BookingDetailSerializer, BookingItemSerializer
 from customers.models import Customer
+from vendors.models import Vendor
 
 
 class AvailabilitySlotsView(APIView):
@@ -404,3 +405,32 @@ class CustomerBookingItemStatusView(APIView):
 
         data = BookingItemSerializer(item).data
         return Response(data, status=drf_status.HTTP_200_OK)
+
+class VendorBookingItemListView(generics.ListAPIView):
+    """
+    GET /api/vendor/booking-items/
+
+    Returns all booking items (services) that belong to the logged-in vendor.
+    Each item is one service that a customer has booked from this vendor.
+    """
+
+    permission_classes = [permissions.IsAuthenticated, IsVendor]
+    serializer_class = BookingItemSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Assuming a one-to-one relation: Vendor(user=User)
+        try:
+            vendor = user.vendor
+        except Vendor.DoesNotExist:
+            raise PermissionDenied("Vendor profile does not exist for this user.")
+
+        qs = Booking.objects.filter(vendor=vendor).order_by("preferred_date", "preferred_time")
+
+        # Optional: allow filtering by status via ?status=processing or ?status=vendor_done, etc.
+        status_param = self.request.query_params.get("status")
+        if status_param:
+            qs = qs.filter(status=status_param)
+
+        return qs
