@@ -23,6 +23,14 @@ class CartItemSerializer(serializers.ModelSerializer):
     # id we return to the frontend
     id = serializers.UUIDField(read_only=True)
 
+    # EXTRA FIELDS for FE contract
+    # We ignore any values the frontend sends for these and instead
+    # compute them from Service + VendorService so the backend remains source of truth.
+    name = serializers.CharField(source="service.name", read_only=True)
+    description = serializers.CharField(source="service.description", read_only=True)
+    price = serializers.SerializerMethodField(read_only=True)
+    duration = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = CartItem
         fields = [
@@ -31,11 +39,34 @@ class CartItemSerializer(serializers.ModelSerializer):
             "preferredTime",
             "service_id",
             "vendor_id",
+            "name",
+            "description",
+            "price",
+            "duration",
         ]
+
+    def get_price(self, obj):
+        vs = VendorService.objects.filter(
+            vendor=obj.vendor,
+            service=obj.service,
+            is_active=True,
+            service__is_active=True,
+        ).first()
+        return str(vs.price) if vs else None
+
+    def get_duration(self, obj):
+        vs = VendorService.objects.filter(
+            vendor=obj.vendor,
+            service=obj.service,
+            is_active=True,
+            service__is_active=True,
+        ).first()
+        return vs.duration if vs else None
 
     def validate(self, attrs):
         """
         Validate vendor_id + service_id combo and ensure vendor offers this service.
+        (unchanged logic)
         """
         service_id = attrs.get("service_id")
         vendor_id = attrs.get("vendor_id")
@@ -85,7 +116,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         validated_data.pop("service_id", None)
         validated_data.pop("vendor_id", None)
 
-        # customer will be injected from the view via serializer.save(customer=...)
+        # customer is injected from the view via serializer.save(customer=...)
         return CartItem.objects.create(
             service=service,
             vendor=vendor,
@@ -93,8 +124,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-        # For PATCH: we generally only expect preferredDate/preferredTime.
-        # Ignore service/vendor changes from PATCH for now.
+        # For PATCH: only preferredDate/preferredTime are expected.
         validated_data.pop("service_id", None)
         validated_data.pop("vendor_id", None)
         validated_data.pop("service_obj", None)
@@ -104,11 +134,13 @@ class CartItemSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """
         Include service_id and vendor_id in the response, matching frontend contract.
+        name/description/price/duration are handled by the serializer fields.
         """
         data = super().to_representation(instance)
         data["service_id"] = str(instance.service_id)
         data["vendor_id"] = str(instance.vendor_id)
         return data
+
 
 
 class BookingItemInputSerializer(serializers.Serializer):

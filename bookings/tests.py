@@ -86,6 +86,10 @@ $newCartBody = @{
     preferredTime = "14:00"            # HH:mm (serializer will output HH:mm:ss)
     service_id    = $serviceId
     vendor_id     = $vendorId
+    name = "Deep Cleaning Service"
+    description = "Full house deep cleaning package"
+    price = "45"
+    duration = "120"
 } | ConvertTo-Json
 
 $newItem = Invoke-RestMethod `
