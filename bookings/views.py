@@ -112,7 +112,7 @@ class AvailabilitySlotsView(APIView):
                 vendor_id=vendor_uuid,
                 start_time__date=target_date,
             )
-            .exclude(status=Booking.Status.CANCELED)
+            .exclude(status=Booking.Status.CANCELLED)
             .exclude(start_time__isnull=True)
             .exclude(end_time__isnull=True)
         )
