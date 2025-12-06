@@ -241,18 +241,44 @@ class IsCustomer(permissions.BasePermission):
 
 class BookingCreateView(APIView):
     """
-    POST /api/bookings/
-    Creates a BookingGroup + Booking items and returns full booking detail.
+    GET  /api/bookings/   -> list all bookings for the logged-in customer
+    POST /api/bookings/   -> create a new booking (BookingGroup + items)
     """
 
     permission_classes = [permissions.IsAuthenticated, IsCustomer]
 
+    def get(self, request, *args, **kwargs):
+        """
+        List all bookings (BookingGroup) for the current customer, newest first.
+        """
+        user = request.user
+
+        # Find the Customer record linked to this user
+        try:
+            customer = Customer.objects.get(user=user)
+        except Customer.DoesNotExist:
+            raise PermissionDenied("Customer profile does not exist.")
+
+        # Get all BookingGroup rows for this customer
+        booking_groups = (
+            BookingGroup.objects
+            .filter(customer=customer)
+            .order_by("-created_at")
+        )
+
+        serializer = BookingDetailSerializer(booking_groups, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def post(self, request, *args, **kwargs):
+        """
+        Create a new booking with one or more items.
+        """
         serializer = BookingCreateSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         booking_group = serializer.save()
         out = BookingDetailSerializer(booking_group)
         return Response(out.data, status=status.HTTP_201_CREATED)
+
 
 
 class BookingDetailView(generics.RetrieveAPIView):
