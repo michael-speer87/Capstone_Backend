@@ -15,8 +15,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.conf import settings
-from django.conf.urls.static import static
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views_auth import CookieTokenObtainPairView, CookieTokenRefreshView, LogoutView, RoleProfileView, MyTokenObtainPairView
@@ -27,14 +25,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/auth/", include("users.urls")),
     path("api/profile/", RoleProfileView.as_view(), name="profile-create"),
-    path("api/auth/token/", MyTokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("api/auth/login/", CookieTokenObtainPairView.as_view(), name="cookie_login"),
-    path("api/auth/refresh-cookie/", CookieTokenRefreshView.as_view(), name="cookie_refresh"),
+    #path("api/auth/token/", MyTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    #path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/auth/token/", CookieTokenObtainPairView.as_view(), name="cookie_login"),
+    path("api/auth/token/refresh/", CookieTokenRefreshView.as_view(), name="cookie_refresh"),
     path("api/auth/logout/", LogoutView.as_view(), name="logout"),
     path("api/auth/password-reset/", PasswordResetRequestView.as_view(), name="password_reset"),
     path("api/auth/password-reset-confirm/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
     path("api/services/", include("services.urls")),
+    path("api/vendors/", include("vendors.urls")),
+    path("api/", include("bookings.urls")),
 ]
-
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

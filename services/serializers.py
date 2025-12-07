@@ -93,3 +93,43 @@ class VendorServiceUpdateSerializer(serializers.ModelSerializer):
             "duration": {"required": False},
             "is_active": {"required": False},
         }
+
+
+
+class PublicVendorServiceSerializer(serializers.ModelSerializer):
+    # Flatten fields from related Service and Vendor
+    service_id = serializers.UUIDField(source="service.id", read_only=True)
+    vendor_id = serializers.UUIDField(source="vendor.id", read_only=True)
+    name = serializers.CharField(source="service.name", read_only=True)
+    description = serializers.CharField(source="service.description", read_only=True)
+    duration = serializers.IntegerField(source="service.duration", read_only=True)
+
+    class Meta:
+        model = VendorService
+        fields = [
+            "service_id",     # UUID (string in JSON)
+            "vendor_id",      # UUID (string in JSON)
+            "name",           # string
+            "description",    # string
+            "price",          # decimal -> string in JSON, e.g. "29.99"
+            "duration",       # integer (e.g., minutes)
+        ]
+
+
+class PublicVendorServiceSerializer(serializers.ModelSerializer):
+    # Flatten fields from related Service and Vendor
+    service_id = serializers.UUIDField(source="service.id", read_only=True)
+    vendor_id = serializers.UUIDField(source="vendor.id", read_only=True)
+    name = serializers.CharField(source="service.name", read_only=True)
+    description = serializers.CharField(source="service.description", read_only=True)
+
+    class Meta:
+        model = VendorService
+        fields = [
+            "service_id",     # UUID (string in JSON)
+            "vendor_id",      # UUID (string in JSON)
+            "name",           # string
+            "description",    # string
+            "price",          # decimal -> string in JSON, e.g. "29.99"
+            "duration",       # integer (e.g., minutes)
+        ]

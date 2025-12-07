@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-)@5a)z8i)2xk6-sh^al9rex9ey(tw#9361uykf8e0_1(o2c2w-'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -60,13 +60,13 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "https://transcendent-brigadeiros-13d416.netlify.app",  
+    "http://localhost:5173",  
 ]
 CORS_ALLOW_CREDENTIALS = True 
 CORS_ALLOW_HEADERS = ["authorization", "content-type"]
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 
-CSRF_TRUSTED_ORIGINS = ["https://transcendent-brigadeiros-13d416.netlify.app"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
 
 ROOT_URLCONF = 'core.urls'
 
@@ -95,14 +95,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "mrspeer$default",
-        "USER": "mrspeer",
-        "PASSWORD": "H66K..Q!dCTdVnZ",
-        "HOST": "mrspeer.mysql.pythonanywhere-services.com",
+        "NAME": "car_service_connect2",
+        "USER": "root",
+        "PASSWORD": "TylerD23!",
+        "HOST": "127.0.0.1",
         "PORT": "3306",
-        "OPTIONS": {
-            "charset": "utf8mb4",
-            },
+        "OPTIONS": {"charset": "utf8mb4"},
     }
 }
 
@@ -111,8 +109,8 @@ AUTH_USER_MODEL = "users.User"
 
 EMAIL_HOST = "sandbox.smtp.mailtrap.io"
 EMAIL_PORT = 2525             
-EMAIL_HOST_USER = "7f15ccda050f20"
-EMAIL_HOST_PASSWORD = "d1b70c26bd953b"
+EMAIL_HOST_USER = "ef9d772df2043e"
+EMAIL_HOST_PASSWORD = "19048c751eb405"
 EMAIL_USE_TLS = True         
 EMAIL_USE_SSL = False     
 DEFAULT_FROM_EMAIL = "Car Service Connect <noreply@gmail.com>"
@@ -162,8 +160,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

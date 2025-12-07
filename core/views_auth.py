@@ -14,8 +14,8 @@ from vendors.serializers import VendorCreateSerializer
 
 
 REFRESH_COOKIE_NAME = "refresh_token"
-REFRESH_COOKIE_PATH = "/api/auth/refresh-cookie/"
-REFRESH_COOKIE_SAMESITE = "Lax"   
+REFRESH_COOKIE_PATH = "/api/auth/token/refresh/"
+REFRESH_COOKIE_SAMESITE = "None"   
 REFRESH_COOKIE_SECURE = True  
 REFRESH_COOKIE_HTTPONLY = True
 
