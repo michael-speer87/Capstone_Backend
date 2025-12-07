@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-)@5a)z8i)2xk6-sh^al9rex9ey(tw#9361uykf8e0_1(o2c2w-'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -60,13 +60,13 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  
+    "https://transcendent-brigadeiros-13d416.netlify.app",  
 ]
 CORS_ALLOW_CREDENTIALS = True 
 CORS_ALLOW_HEADERS = ["authorization", "content-type"]
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
+CSRF_TRUSTED_ORIGINS = ["https://transcendent-brigadeiros-13d416.netlify.app"]
 
 ROOT_URLCONF = 'core.urls'
 
@@ -95,10 +95,10 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "car_service_connect2",
-        "USER": "root",
-        "PASSWORD": "TylerD23!",
-        "HOST": "127.0.0.1",
+        "NAME": "mrspeer$default",
+        "USER": "mrspeer",
+        "PASSWORD": "H66K..Q!dCTdVnZ",
+        "HOST": "mrspeer.mysql.pythonanywhere-services.com",
         "PORT": "3306",
         "OPTIONS": {"charset": "utf8mb4"},
     }
