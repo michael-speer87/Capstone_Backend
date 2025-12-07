@@ -265,6 +265,8 @@ class BookingItemSerializer(serializers.ModelSerializer):
     preferred_date = serializers.DateField(format="%Y-%m-%d")
     preferred_time = serializers.TimeField(format="%H:%M")
 
+    customer = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Booking
         fields = [
@@ -280,11 +282,28 @@ class BookingItemSerializer(serializers.ModelSerializer):
             "status",
             "vendor_marked_done_at",
             "customer_confirmed_at",
+            "customer",  
         ]
 
     def get_price(self, obj):
         # return as string, e.g. "49.99"
         return None if obj.price_snapshot is None else str(obj.price_snapshot)
+
+    def get_customer(self, obj):
+        """
+        Return the same customer snapshot structure used in BookingDetailSerializer,
+        pulled from the related BookingGroup.
+        """
+        bg = obj.booking_group
+        if bg is None:
+            return None
+        return {
+            "fullname": bg.customer_fullname,
+            "contact_info": bg.customer_contact_info,
+            "email": bg.customer_email,
+            "address": bg.customer_address,
+        }
+
 
 class BookingDetailSerializer(serializers.ModelSerializer):
     customer = serializers.SerializerMethodField()
